@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { verifyJwt } from "../middlewares/auth.middlewares.js";
 import{
     createCall,
         callOffer,
@@ -11,8 +12,8 @@ import{
 const router = Router();
 
 
-router.post("/createcall",createCall);
-router.get("/offer/:callId",callOffer);
+router.post("/createcall",verifyJwt,createCall);
+router.get("/offer/:callId",verifyJwt,callOffer);
 router.post("/answer",sendAnswer);
 router.get("/answer/:callId",getAnswer);
 router.post("/ice-candidates",sendIce);
