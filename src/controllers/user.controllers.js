@@ -2,7 +2,7 @@ import { asynchandler } from "../utils/asynchandeler.js";
 import { apierror } from "../utils/apierror.js";
 import { apiresponse } from "../utils/apiresponse.js";
 import { USER } from "../models/videocall.model.js";
-import  io  from "../app.js";
+import { io } from "../app.js";
 
 //create  call offer 
 const createCall = asynchandler(async(req,res)=>{
@@ -27,7 +27,7 @@ return res
 })
 
 //get offer by call id
-const callOffer = asynchandler(async()=>{
+const callOffer = asynchandler(async(req,res)=>{
     const call =await USER.findOne({callId:req.params.callId}).select("offer");
     if(call.offer){
         res.json({offer:call.offer});
@@ -75,7 +75,7 @@ if(call){
 
     //emit ice candidate
     req.io.to(callId).emit("recive-ice",{candidate});
-    
+
 res.json({success:true})
 }else{
     res.status(404).json({ error: "Call not found" });

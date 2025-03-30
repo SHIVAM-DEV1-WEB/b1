@@ -41,7 +41,7 @@ io.on("Connection",(Socket)=>{
 
 
 Socket.on("join-room",(roomId)=>{
-    Socket.captureRejectionSymbol(roomId);
+    Socket.join(roomId);
     console.log(`user joined room${roomId}`);
     
 })
