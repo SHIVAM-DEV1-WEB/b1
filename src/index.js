@@ -1,6 +1,7 @@
 import dotenv from "dotenv"
-import { app } from "./app.js";
+import { server} from "./app.js";
 import connectDB from "./db/index.js";
+
 
 
 dotenv.config({
@@ -11,7 +12,7 @@ const port = 3000;
 
 connectDB()
 .then(()=>{
-    app.listen(port ,()=>{
+    server.listen(port ,()=>{
        console.log(`server is running at${port}`)
     })
 })

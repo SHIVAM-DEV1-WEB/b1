@@ -2,7 +2,7 @@ import { asynchandler } from "../utils/asynchandeler.js";
 import { apierror } from "../utils/apierror.js";
 import { apiresponse } from "../utils/apiresponse.js";
 import { USER } from "../models/videocall.model.js";
-
+import  io  from "../app.js";
 
 //create  call offer 
 const createCall = asynchandler(async(req,res)=>{
@@ -16,6 +16,9 @@ if (!call) {
     call.offer = offer;
 }
 await call.save();
+
+// Emit offer event to all users in the callId room
+req.io.to(callId).emit("receive=offer",{offer});
 
 return res
 .status(201)
@@ -40,6 +43,10 @@ const sendAnswer = asynchandler(async(req,res)=>{
  if(call){
     call.answer=answer;
     await call.save();
+
+    //emit answewr event
+    req.io.to(callId).emit("recive-answer",{answer});
+    
     res.json({success:true})
  } else{
     throw new apierror(404,"call not found");
@@ -65,6 +72,10 @@ let call = await USER.findOneAndUpdate(
     {new:true}
 )
 if(call){
+
+    //emit ice candidate
+    req.io.to(callId).emit("recive-ice",{candidate});
+    
 res.json({success:true})
 }else{
     res.status(404).json({ error: "Call not found" });
