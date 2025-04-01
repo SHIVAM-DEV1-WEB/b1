@@ -1,21 +1,16 @@
 import express from "express"
 import cors from "cors"
 import {createServer} from "http";
-import { Server } from "socket.io";
+import { WebSocketServer } from "ws";
+import  dotenv  from "dotenv";
+dotenv.config({
+    path:"./.env"
+}
+);
 
 
 const app =express()
-
-// create http server
- const server = createServer(app);
-
-//setup soketio
-const io = new Server(server,{
-    cors:{
-        origin:process.env.CORS_ORIGIN,
-        credentials:true
-}
-})
+const server= createServer(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,30 +21,91 @@ app.use(
 })
 )
 
-app.use((req,res,next)=>{
-    req.io = io;
-    next();
-})
+//websocket server
+const wss = new WebSocketServer({server});
+
+const rooms = new Map();
+
+wss.on("connection",(ws) =>{
+    console.log("New Web socket server stablished");
+    
+
+       ws.on("message",(message)=>{
+        try{
+        const data = JSON.parse(message);
+
+        if(data.type === "join-room"){
+            const {roomId}= data;
+            if(!rooms.has(roomId)){
+                rooms.set(roomId,new Set());
+            }
+            rooms.get(roomId).add(ws);
+            console.log(`user joined room ${roomId}`);
+            
+        }
+
+        if(data.type === "send-offer"){
+            const {roomId,offer} =data;
+            broadCasteToRoom(roomId,JSON.stringify({type:"receive-offer",offer}));
+        }
+
+        if(data.type === "send-ice"){
+            const{roomId,candidate} = data;
+            broadCasteToRoom(roomId,JSON.stringify({type:"receive-ice",candidate}));
+
+        }
+
+        if(data.type === "send-answer"){
+            const {roomId,answer}=data;
+            broadCasteToRoom(roomId,JSON.stringify({type:"receive-answer",answer}));
+        }
+    }catch(error){
+        console.error("❌ Error processing message:", error);
+    }
+       });
+       
+       
+       ws.on("close",()=>{
+        console.log("Websocket disconnected");
+        removeFromRooms(ws);
+        
+       });
+
+       ws.on("error",(error)=>{
+        console.error("websocket error:",error);
+       });
+    });
+
+
+
+    function broadCasteToRoom (roomId,message){
+        if(rooms.has(roomId)){
+            rooms.get(roomId).forEach((client) => {
+                if(client.readyState === 1){
+                    client.send(message);
+                }
+            });
+        }
+    }
+
+
+    function removeFromRooms(ws){
+        rooms.forEach((clients,roomId)=>{
+            clients.delete(ws);
+            if(clients.size === 0){
+                rooms.delete(roomId);
+            }
+        });
+    }
+
+
+
 
 import router from "./routes/videocall.routes.js";
-import { Socket } from "dgram";
+
+
+
 app.use("/api/v1/videocall",router);
 
-// logic for singalling
-io.on("Connection",(Socket)=>{
-    console.log(`user connected:${Socket.id}`);
 
-
-Socket.on("join-room",(roomId)=>{
-    Socket.join(roomId);
-    console.log(`user joined room${roomId}`);
-    
-})
-
-Socket.on("disconnected",()=>{
-    console.log(`user disconnected:${Socket.id}`);
-    
-});
-});
-
-export {app,server,io};
+export {app,server};
