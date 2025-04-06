@@ -7,12 +7,12 @@ import{
         sendAnswer,
         getice,
         sendIce
-}from "../controllers/user.controllers.js";
+}from "../controllers/videocall.controllers.js";
 
 const router = Router();
 
 
-router.post("/createcall",verifyJwt,createCall);
+router.post("/createcall",createCall);
 router.get("/offer/:callId",verifyJwt,callOffer);
 router.post("/answer",sendAnswer);
 router.get("/answer/:callId",getAnswer);

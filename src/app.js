@@ -27,7 +27,7 @@ const wss = new WebSocketServer({server});
 const rooms = new Map();
 
 wss.on("connection",(ws) =>{
-    console.log("New Web socket server stablished");
+    console.log("New Web socket server ");
     
 
        ws.on("message",(message)=>{
@@ -60,7 +60,7 @@ wss.on("connection",(ws) =>{
             broadCasteToRoom(roomId,JSON.stringify({type:"receive-answer",answer}));
         }
     }catch(error){
-        console.error("❌ Error processing message:", error);
+        console.error(" Error processing message:", error);
     }
        });
        
