@@ -13,7 +13,7 @@ export const verifyJwt = asynchandler(async(req , res , next)=>{
 
 //decode the token
     try {
-        const decodedToken =jwt.verify(token ,process.env.JWT_ACCESS_TOKEN_SECRET);
+        const decodedToken =jwt.verify(token ,process.env.JWT_ACCESS_TOKEN_SECRET).trim(); // here correction of .trim()
         
         req.user = decodedToken;
         next();
